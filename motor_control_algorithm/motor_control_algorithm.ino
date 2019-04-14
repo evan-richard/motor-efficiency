@@ -88,48 +88,52 @@ void loop() {
     continue;
   }
   lastVal = potValue;
-
-  // MARK: Write RPM/torque to motor
-  writePwm();
-
-  // We need to delay here to give the motor time to reach the desired speed
-  // 1 second
-  delay(1000);
-
-  // MARK: Gear change
+  
   do {
-    // MARK: measure RPM(tire)
-    float rpmTire = getRpm(HALL_SENSOR_FOR_WHEEL);
-
-    if (rpmTire < (desiredSpeed - 25)) {
-      // change gear up/down
-    }
-    if (rpmTire > (desiredSpeed + 25)) {
-      // change gear up/down
-    }
-  } while (abs(rpmTire - desiredSpeed) < 50);
+    // MARK: Write RPM/torque to motor
+    writePwm();
   
-  // MARK: measure current and voltage(*****STILL NEED****)
-  curr1 = analogRead(SOA);  // read the current input pins
-  curr2 = analogRead(SOB);  // read the current input pins
-  curr3 = analogRead(SOC);  // read the current input pins
-  float i = max(max(curr1, curr2), curr3);
-
-  // MARK: measure torque and RPM(motor)
-  // torque = kt * i;
-  float rpmMotor = getRpm(HALLA);
+    // We need to delay here to give the motor time to reach the desired speed
+    // 1 second
+    delay(1000);
   
-  // MARK: calculate efficiency
-  float eff = (t*rpmMotor)/(v*i)
-
-  if (eff < 0.7) {
-    // MARK: torque pid loop
-    configPwmVals(); 
-  }
+    // MARK: Gear change
+    do {
+      // MARK: measure RPM(tire)
+      float rpmTire = getRpm(HALL_SENSOR_FOR_WHEEL);
+  
+      if (rpmTire < (desiredSpeed - 25)) {
+        // change gear up/down
+      }
+      if (rpmTire > (desiredSpeed + 25)) {
+        // change gear up/down
+      }
+    } while (abs(rpmTire - desiredSpeed) < 50);
+    
+    // MARK: measure current and voltage(*****STILL NEED****)
+    curr1 = analogRead(SOA);  // read the current input pins
+    curr2 = analogRead(SOB);  // read the current input pins
+    curr3 = analogRead(SOC);  // read the current input pins
+    float i = max(max(curr1, curr2), curr3);
+  
+    // MARK: measure torque and RPM(motor)
+    // torque = kt * i;
+    float rpmMotor = getRpm(HALLA);
+    
+    // MARK: calculate efficiency
+    float eff = (t*rpmMotor)/(v*i)
+  
+    if (eff < 0.7) {
+      // MARK: torque pid loop
+      configPwmVals();
+    }
+  } while (eff < 0.7);
+  
 }
 
 // recompute the pwm value based on feedback from the
 // shunt output pins
+// WORK IN PROGRESS
 void configPwmVals() {
   curr1 = analogRead(SOA);  // read the current input pins
   curr2 = analogRead(SOB);  // read the current input pins
