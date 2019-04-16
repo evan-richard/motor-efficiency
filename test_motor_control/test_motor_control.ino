@@ -72,76 +72,31 @@ void setup() {
 void loop() {
   fault = digitalRead(nFAULT);
 
-  if (fault) {
-    digitalWrite(ENABLE, LOW);
-    break;  
+  if (!fault) {
+    Serial.println("FAULT***");
   }
 
-  // MARK: read speed setting
-  potValue = analogRead(POT);                            // Read potentiometer value
-  desiredSpeed = map(potValue, 0, 1023, 0, 255);         // Map the potentiometer value from 0 to 255
-  pwmOutput = desiredSpeed;
-
-  // MARK: new speed setting?
-  if (abs(potValue - lastValue) < 100) {
-    // no
-    continue;
-  }
-  lastVal = potValue;
+  pwmOutput = 155;
   
-  do {
-    // MARK: Write RPM/torque to motor
-    writePwm();
+  // MARK: Write RPM/torque to motor
+  writePwm();
   
-    // We need to delay here to give the motor time to reach the desired speed
-    // 1 second
-    delay(1000);
-  
-    // MARK: Gear change
-    do {
-      // MARK: measure RPM(tire)
-      float rpmTire = getRpm(HALL_SENSOR_FOR_WHEEL);
-  
-      if (rpmTire < (desiredSpeed - 25)) {
-        // change gear up/down
-      }
-      if (rpmTire > (desiredSpeed + 25)) {
-        // change gear up/down
-      }
-    } while (abs(rpmTire - desiredSpeed) < 50);
-    
-    // MARK: measure current and voltage(*****STILL NEED****)
-    curr1 = analogRead(SOA);  // read the current input pins
-    curr2 = analogRead(SOB);  // read the current input pins
-    curr3 = analogRead(SOC);  // read the current input pins
-    float i = max(max(curr1, curr2), curr3);
-  
-    // MARK: measure torque and RPM(motor)
-    // torque = kt * i;
-    float rpmMotor = getRpm(HALLA);
-    
-    // MARK: calculate efficiency
-    float eff = (t*rpmMotor)/(v*i)
-  
-    if (eff < 0.7) {
-      // MARK: torque pid loop
-      configPwmVals();
-    }
-  } while (eff < 0.7);
-  
-}
-
-// recompute the pwm value based on feedback from the
-// shunt output pins
-// WORK IN PROGRESS
-void configPwmVals() {
+  // MARK: measure current and voltage(*****STILL NEED****)
   curr1 = analogRead(SOA);  // read the current input pins
   curr2 = analogRead(SOB);  // read the current input pins
   curr3 = analogRead(SOC);  // read the current input pins
+  Serial.print("SOA: : ");
+  Serial.println(curr1);
+  Serial.print("SOB: ");
+  Serial.println(curr2);
+  Serial.print("SOC: ");
+  Serial.println(curr3);
+  float i = max(max(curr1, curr2), curr3);
 
-  Serial.println(volt1);    // debug value
-  Serial.println(volt2);    // debug value
-  Serial.println(volt3);    // debug value   
+  // MARK: measure torque and RPM(motor)
+  // torque = k_t * i;
+//  float rpmMotor = getRpm(HALLA);
+  delay(500);
 }
 
 // Returns the RPM based on readings from a single hall sensor
@@ -187,6 +142,12 @@ void writePwm() {
   hallValA = digitalRead(HALLA);
   hallValB = digitalRead(HALLB);
   hallValC = digitalRead(HALLC);
+  Serial.print("HALLA: ");
+  Serial.println(hallValA);
+  Serial.print("HALLB: ");
+  Serial.println(hallValB);
+  Serial.print("HALLC: ");
+  Serial.println(hallValC);
   
   if (hallValA == 0 && hallValB == 0 && hallValC == 0) {
     // stop: should not get here
