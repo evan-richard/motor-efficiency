@@ -142,12 +142,6 @@ void writePwm() {
   hallValA = digitalRead(HALLA);
   hallValB = digitalRead(HALLB);
   hallValC = digitalRead(HALLC);
-  Serial.print("HALLA: ");
-  Serial.println(hallValA);
-  Serial.print("HALLB: ");
-  Serial.println(hallValB);
-  Serial.print("HALLC: ");
-  Serial.println(hallValC);
   
   if (hallValA == 0 && hallValB == 0 && hallValC == 0) {
     // stop: should not get here
@@ -160,15 +154,15 @@ void writePwm() {
     // write the pwm to the appropriate gate
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, LOW);
-    analogWrite(INHB, pwmOutput);
-    analogWrite(INLB, !pwmOutput);
+    digitalWrite(INHB, HIGH);
+    analogWrite(INLB, pwmOutput);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, HIGH);
   } else if (hallValA == 1 && hallValB == 0 && hallValC == 0) {
     // STATE 2:
     // write the pwm to the appropriate gate
-    analogWrite(INHA, pwmOutput);
-    analogWrite(INLA, !pwmOutput);
+    digitalWrite(INHA, HIGH);
+    analogWrite(INLA, pwmOutput);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
@@ -176,8 +170,8 @@ void writePwm() {
   } else if (hallValA == 1 && hallValB == 0 && hallValC == 1) {
     // STATE 3:
     // write the pwm to the appropriate gate
-    analogWrite(INHA, pwmOutput);
-    analogWrite(INLA, !pwmOutput);
+    digitalWrite(INHA, HIGH);
+    analogWrite(INLA, pwmOutput);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
     digitalWrite(INHC, LOW);
@@ -189,8 +183,8 @@ void writePwm() {
     digitalWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
-    analogWrite(INHC, pwmOutput);
-    analogWrite(INLC, !pwmOutput);
+    digitalWrite(INHC, HIGH);
+    analogWrite(INLC, pwmOutput);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 1) {
     // STATE 5:
     // write the pwm to the appropriate gate
@@ -198,15 +192,15 @@ void writePwm() {
     digitalWrite(INLA, HIGH);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
-    analogWrite(INHC, pwmOutput);
-    analogWrite(INLC, !pwmOutput);
+    digitalWrite(INHC, HIGH);
+    analogWrite(INLC, pwmOutput);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 0) {
     // STATE 6:
     // write the pwm to the appropriate gate
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, HIGH);
-    analogWrite(INHB, pwmOutput);
-    analogWrite(INLB, !pwmOutput);
+    digitalWrite(INHB, HIGH);
+    analogWrite(INLB, pwmOutput);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, LOW);
   }
