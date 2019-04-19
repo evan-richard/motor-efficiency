@@ -6,12 +6,12 @@
 // Author: Evan Richard
 
 // phase outputs: on an Arduino Uno, PWM output is possible on digital I/O pins 3, 5, 6, 9, 10 and 11.
-#define INHA 11
+#define INHA 5
 #define INHB 6
-#define INHC 10
-#define INLA 3
-#define INLB 5
-#define INLC 9
+#define INHC 7
+#define INLA 9
+#define INLB 10
+#define INLC 11
 
 // hall sensor input vals: digital
 #define HALLA 13
@@ -67,6 +67,7 @@ void setup() {
 
   // configure enable output
   pinMode(ENABLE, OUTPUT);
+  digitalWrite(ENABLE, HIGH);
 }
 
 void loop() {
@@ -74,9 +75,10 @@ void loop() {
 
   if (!fault) {
     Serial.println("FAULT***");
+    return;
   }
 
-  pwmOutput = 155;
+  pwmOutput = 100;
   
   // MARK: Write RPM/torque to motor
   writePwm();
@@ -96,7 +98,7 @@ void loop() {
   // MARK: measure torque and RPM(motor)
   // torque = k_t * i;
 //  float rpmMotor = getRpm(HALLA);
-  delay(500);
+  delay(1000);
 }
 
 // Returns the RPM based on readings from a single hall sensor
@@ -142,8 +144,14 @@ void writePwm() {
   hallValA = digitalRead(HALLA);
   hallValB = digitalRead(HALLB);
   hallValC = digitalRead(HALLC);
+  Serial.print("HALLA: ");
+  Serial.println(hallValA);
+  Serial.print("HALLB: ");
+  Serial.println(hallValB);
+  Serial.print("HALLC: ");
+  Serial.println(hallValC);
   
-  if (hallValA == 0 && hallValB == 0 && hallValC == 0) {
+    if (hallValA == 0 && hallValB == 0 && hallValC == 0) {
     // stop: should not get here
     Serial.println("Read STOP from hall sensors");
   } else if (hallValA == 1 && hallValB == 1 && hallValC == 1) {
@@ -154,15 +162,15 @@ void writePwm() {
     // write the pwm to the appropriate gate
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, LOW);
-    digitalWrite(INHB, HIGH);
-    analogWrite(INLB, pwmOutput);
+    analogWrite(INHB, pwmOutput);
+    analogWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, HIGH);
   } else if (hallValA == 1 && hallValB == 0 && hallValC == 0) {
     // STATE 2:
     // write the pwm to the appropriate gate
-    digitalWrite(INHA, HIGH);
-    analogWrite(INLA, pwmOutput);
+    analogWrite(INHA, pwmOutput);
+    analogWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
@@ -170,8 +178,8 @@ void writePwm() {
   } else if (hallValA == 1 && hallValB == 0 && hallValC == 1) {
     // STATE 3:
     // write the pwm to the appropriate gate
-    digitalWrite(INHA, HIGH);
-    analogWrite(INLA, pwmOutput);
+    analogWrite(INHA, pwmOutput);
+    analogWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
     digitalWrite(INHC, LOW);
@@ -183,8 +191,8 @@ void writePwm() {
     digitalWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
-    digitalWrite(INHC, HIGH);
-    analogWrite(INLC, pwmOutput);
+    analogWrite(INHC, pwmOutput);
+    analogWrite(INLC, LOW);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 1) {
     // STATE 5:
     // write the pwm to the appropriate gate
@@ -192,15 +200,15 @@ void writePwm() {
     digitalWrite(INLA, HIGH);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
-    digitalWrite(INHC, HIGH);
-    analogWrite(INLC, pwmOutput);
+    analogWrite(INHC, pwmOutput);
+    analogWrite(INLC, LOW);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 0) {
     // STATE 6:
     // write the pwm to the appropriate gate
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, HIGH);
-    digitalWrite(INHB, HIGH);
-    analogWrite(INLB, pwmOutput);
+    analogWrite(INHB, pwmOutput);
+    analogWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, LOW);
   }

@@ -139,9 +139,9 @@ void configPwmVals() {
   curr2 = analogRead(SOB);  // read the current input pins
   curr3 = analogRead(SOC);  // read the current input pins
 
-  Serial.println(volt1);    // debug value
-  Serial.println(volt2);    // debug value
-  Serial.println(volt3);    // debug value   
+  Serial.println(curr1);    // debug value
+  Serial.println(curr2);    // debug value
+  Serial.println(curr3);    // debug value   
 }
 
 // Returns the RPM based on readings from a single hall sensor
