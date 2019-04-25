@@ -97,8 +97,7 @@ void loop() {
 
   // MARK: measure torque and RPM(motor)
   // torque = k_t * i;
-//  float rpmMotor = getRpm(HALLA);
-  delay(1000);
+  // float rpmMotor = getRpm(HALLA);
 }
 
 // Returns the RPM based on readings from a single hall sensor

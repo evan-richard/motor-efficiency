@@ -21,8 +21,8 @@
   * There are many lines commented out that were used for debugging by
   * printing various values to the serial connection. 
  */
- #define HallA 12
- #define HallB 13
+ #define HallA 13
+ #define HallB 12
  #define HallC 8
  
 int HallState1; //Variables for the three hall sensors (3,2,1)
