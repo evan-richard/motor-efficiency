@@ -6,17 +6,37 @@
 // Author: Evan Richard
 
 // phase outputs: on an Arduino Uno, PWM output is possible on digital I/O pins 3, 5, 6, 9, 10 and 11.
-#define INHA 5
-#define INHB 6
-#define INHC 7
-#define INLA 9
-#define INLB 10
-#define INLC 11
+#define INHA 9
+#define INHB 10
+#define INHC 11
+#define INLA 5
+#define INLB 6
+#define INLC 7
 
-// hall sensor input vals: digital
-#define HALLA 13
-#define HALLB 12
-#define HALLC 8
+// Original
+ #define HALLA 8
+ #define HALLB 12
+ #define HALLC 13
+
+// #define HALLA 8
+// #define HALLB 13
+// #define HALLC 12
+// 
+// #define HALLA 12
+// #define HALLB 8
+// #define HALLC 13
+//
+// #define HALLA 12
+// #define HALLB 13
+// #define HALLC 8
+//
+// #define HALLA 13
+// #define HALLB 8
+// #define HALLC 12
+//
+// #define HALLA 13
+// #define HALLB 12
+// #define HALLC 8
 
 // Shunt Amplifier input vals: analog
 #define SOA A0
@@ -57,6 +77,11 @@ void setup() {
   pinMode(INLB, OUTPUT);
   pinMode(INLC, OUTPUT);
 
+  digitalWrite(INLA, HIGH);
+  digitalWrite(INLB, HIGH);
+  digitalWrite(INLC, HIGH);
+  delay(15);
+
   // configure hall sensor input pins
   pinMode(HALLA, INPUT);
   pinMode(HALLB, INPUT);
@@ -65,18 +90,45 @@ void setup() {
   // configure nFault input
   pinMode(nFAULT, INPUT);
 
+  /* Set PWM frequency on pins 9,10, and 11
+  // this bit of code comes from 
+  http://usethearduino.blogspot.com/2008/11/changing-pwm-frequency-on-arduino.html
+  */  
+  // Set PWM for pins 9,10 to 32 kHz
+  //First clear all three prescaler bits:
+  int prescalerVal = 0x07; //create a variable called prescalerVal and set it equal to the binary number "00000111"
+  TCCR1B &= ~prescalerVal; //AND the value in TCCR0B with binary number "11111000"
+
+  //Now set the appropriate prescaler bits:
+  int prescalerVal2 = 1; //set prescalerVal equal to binary number "00000001"
+//  int prescalerVal2 = 0x03; //set prescalerVal equal to binary number "00000010"
+  TCCR1B |= prescalerVal2; //OR the value in TCCR0B with binary number "00000001"
+  
+  // Set PWM for pins 3,11 to 32 kHz (Only pin 11 is used in this program)
+  //First clear all three prescaler bits:
+  TCCR2B &= ~prescalerVal; //AND the value in TCCR0B with binary number "11111000"
+
+  //Now set the appropriate prescaler bits:
+ 
+  TCCR2B |= prescalerVal2; //OR the value in TCCR0B with binary number "00000001"//First clear all three prescaler bits:
+
   // configure enable output
   pinMode(ENABLE, OUTPUT);
   digitalWrite(ENABLE, HIGH);
 }
 
 void loop() {
+  
   fault = digitalRead(nFAULT);
 
   if (!fault) {
     Serial.println("FAULT***");
+    digitalWrite(ENABLE, LOW);
+    delay(50);
     return;
   }
+
+  digitalWrite(ENABLE, HIGH);
 
   pwmOutput = 100;
   
@@ -152,9 +204,21 @@ void writePwm() {
   
     if (hallValA == 0 && hallValB == 0 && hallValC == 0) {
     // stop: should not get here
+    digitalWrite(INHA, LOW);
+    digitalWrite(INLA, LOW);
+    digitalWrite(INHB, LOW);
+    digitalWrite(INLB, LOW);
+    digitalWrite(INHC, LOW);
+    digitalWrite(INLC, LOW);
     Serial.println("Read STOP from hall sensors");
   } else if (hallValA == 1 && hallValB == 1 && hallValC == 1) {
     // align: should not get here
+    analogWrite(INHA, pwmOutput);
+    analogWrite(INLA, LOW);
+    digitalWrite(INHB, LOW);
+    digitalWrite(INLB, HIGH);
+    digitalWrite(INHC, LOW);
+    digitalWrite(INLC, HIGH);
     Serial.println("Read ALIGN from hall sensors");
   } else if (hallValA == 1 && hallValB == 1 && hallValC == 0) {
     // STATE 1:
@@ -162,14 +226,14 @@ void writePwm() {
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, LOW);
     analogWrite(INHB, pwmOutput);
-    analogWrite(INLB, LOW);
+    digitalWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, HIGH);
   } else if (hallValA == 1 && hallValB == 0 && hallValC == 0) {
     // STATE 2:
     // write the pwm to the appropriate gate
     analogWrite(INHA, pwmOutput);
-    analogWrite(INLA, LOW);
+    digitalWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
@@ -178,7 +242,7 @@ void writePwm() {
     // STATE 3:
     // write the pwm to the appropriate gate
     analogWrite(INHA, pwmOutput);
-    analogWrite(INLA, LOW);
+    digitalWrite(INLA, LOW);
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
     digitalWrite(INHC, LOW);
@@ -191,7 +255,7 @@ void writePwm() {
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, HIGH);
     analogWrite(INHC, pwmOutput);
-    analogWrite(INLC, LOW);
+    digitalWrite(INLC, LOW);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 1) {
     // STATE 5:
     // write the pwm to the appropriate gate
@@ -200,15 +264,16 @@ void writePwm() {
     digitalWrite(INHB, LOW);
     digitalWrite(INLB, LOW);
     analogWrite(INHC, pwmOutput);
-    analogWrite(INLC, LOW);
+    digitalWrite(INLC, LOW);
   } else if (hallValA == 0 && hallValB == 1 && hallValC == 0) {
     // STATE 6:
     // write the pwm to the appropriate gate
     digitalWrite(INHA, LOW);
     digitalWrite(INLA, HIGH);
     analogWrite(INHB, pwmOutput);
-    analogWrite(INLB, LOW);
+    digitalWrite(INLB, LOW);
     digitalWrite(INHC, LOW);
     digitalWrite(INLC, LOW);
   }
+  Serial.flush();
 }

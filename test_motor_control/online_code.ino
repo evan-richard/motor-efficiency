@@ -21,9 +21,39 @@
   * There are many lines commented out that were used for debugging by
   * printing various values to the serial connection. 
  */
- #define HallA 13
+
+// phase outputs: on an Arduino Uno, PWM output is possible on digital I/O pins 3, 5, 6, 9, 10 and 11.
+#define INHA 9
+#define INHB 10
+#define INHC 11
+#define INLA 5
+#define INLB 6
+#define INLC 7
+ 
+ // Original
+ #define HallA 8
  #define HallB 12
- #define HallC 8
+ #define HallC 13
+
+// #define HallA 8
+// #define HallB 13
+// #define HallC 12
+// 
+// #define HallA 12
+// #define HallB 8
+// #define HallC 13
+//
+// #define HallA 12
+// #define HallB 13
+// #define HallC 8
+//
+// #define HallA 13
+// #define HallB 8
+// #define HallC 12
+//
+// #define HallA 13
+// #define HallB 12
+// #define HallC 8
  
 int HallState1; //Variables for the three hall sensors (3,2,1)
 int HallState2;
@@ -40,16 +70,15 @@ void setup() {
   pinMode(HallC,INPUT);    // Hall 3
   
 // Outputs for the L6234 Motor Driver
-  pinMode(5,OUTPUT);   // IN 1 
-  pinMode(6,OUTPUT);   // IN 2
-  pinMode(7,OUTPUT);   // IN 3     
-  pinMode(9,OUTPUT);   // EN 1
-  pinMode(10,OUTPUT);  // EN 2 
-  pinMode(11,OUTPUT);  // EN 3
+  pinMode(INLA,OUTPUT);   // IN 1 
+  pinMode(INLB,OUTPUT);   // IN 2
+  pinMode(INLC,OUTPUT);   // IN 3     
+  pinMode(INHA,OUTPUT);   // EN 1
+  pinMode(INHB,OUTPUT);  // EN 2 
+  pinMode(INHC,OUTPUT);  // EN 3
 
   pinMode(4,OUTPUT);
   digitalWrite(4,HIGH);
-   
    
   Serial.begin(9600); //uncomment this line if you will use the serial connection
   // also uncomment Serial.flush command at end of program.
@@ -65,6 +94,7 @@ http://usethearduino.blogspot.com/2008/11/changing-pwm-frequency-on-arduino.html
 
   //Now set the appropriate prescaler bits:
   int prescalerVal2 = 1; //set prescalerVal equal to binary number "00000001"
+//  int prescalerVal2 = 0x03; //set prescalerVal equal to binary number "00000010"
   TCCR1B |= prescalerVal2; //OR the value in TCCR0B with binary number "00000001"
   
   // Set PWM for pins 3,11 to 32 kHz (Only pin 11 is used in this program)
@@ -152,62 +182,88 @@ void loop(){
 // sets the duty of the PWM (0 = OFF, 255 = ON or throttle value that is controlled by the potentiometer).
 
 //  if (throttle > 511){
+      if (digitalRead(2) == LOW) {
+        Serial.println("FAULT*");
+      }
       Serial.println(HallVal);
       switch (HallVal) 
        {
         case 3:
           //PORTD = B011xxx00;  // Desired Output for pins 0-7 xxx refers to the Hall inputs, which should not be changed
-          PORTD  &= B00011111;
-          PORTD  |= B01100000;  // 
-
-          analogWrite(9,mSpeed); // PWM on Phase A (High side transistor)
-          analogWrite(10,0);  // Phase B off (duty = 0)
-          analogWrite(11,255); // Phase C on - duty = 100% (Low side transistor)
+//          PORTD  &= B00011111;
+//          PORTD  |= B01100000;  //
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,mSpeed); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,0);  // Phase B off (duty = 0)
+          analogWrite(INHC,255); // Phase C on - duty = 100% (Low side transistor)
           break;
         case 1:
           //PORTD = B001xxx00;  // Desired Output for pins 0-7
-          PORTD  &= B00011111;  // 
-          PORTD  |= B00100000;  // 
+//          PORTD  &= B00011111;  // 
+//          PORTD  |= B00100000;  // 
 
-          analogWrite(9,mSpeed); // PWM on Phase A (High side transistor)
-          analogWrite(10,255); //Phase B on (Low side transistor)
-          analogWrite(11,0); //Phase B off (duty = 0)
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,mSpeed); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,255);  // Phase B off (duty = 0)
+          analogWrite(INHC,0); // Phase C on - duty = 100% (Low side transistor)
           break;
         case 5:
           //PORTD = B101xxx00;  // Desired Output for pins 0-7
-          PORTD  &= B00011111;  //
-          PORTD  |= B10100000;
+//          PORTD  &= B00011111;  //
+//          PORTD  |= B10100000;
 
-          analogWrite(9,0);
-          analogWrite(10,255);
-          analogWrite(11,mSpeed); 
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,0); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,255);  // Phase B off (duty = 0)
+          analogWrite(INHC,mSpeed); // Phase C on - duty = 100% (Low side transistor)
           break;
         case 4:  
           //PORTD = B100xxx00;  // Desired Output for pins 0-7
-          PORTD  &= B00011111;
-          PORTD  |= B10000000;  // 
+//          PORTD  &= B00011111;
+//          PORTD  |= B10000000;  // 
 
-          analogWrite(9,255);
-          analogWrite(10,0);
-          analogWrite(11,mSpeed);
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,255); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,0);  // Phase B off (duty = 0)
+          analogWrite(INHC,mSpeed); // Phase C on - duty = 100% (Low side transistor)
           break;
         case 6:
         //PORTD = B110xxx00;  // Desired Output for pins 0-7
-          PORTD  &= B00011111;
-          PORTD = B11000000;  // 
+//          PORTD  &= B00011111;
+//          PORTD = B11000000;  // 
 
-          analogWrite(9,255);
-          analogWrite(10,mSpeed);
-          analogWrite(11,0);
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,255); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,mSpeed);  // Phase B off (duty = 0)
+          analogWrite(INHC,0); // Phase C on - duty = 100% (Low side transistor)
           break;
         case 2:
           //PORTD = B010xxx00;  // Desired Output for pins 0-7
-          PORTD  &= B00011111;
-          PORTD  |= B01000000;  // 
+//          PORTD  &= B00011111;
+//          PORTD  |= B01000000;  // 
 
-          analogWrite(9,0);
-          analogWrite(10,mSpeed);
-          analogWrite(11,255);
+          digitalWrite(INLA, );
+          digitalWrite(INLB, );
+          digitalWrite(INLC, );
+          
+          analogWrite(INHA,0); // PWM on Phase A (High side transistor)
+          analogWrite(INHB,mSpeed);  // Phase B off (duty = 0)
+          analogWrite(INHC,255); // Phase C on - duty = 100% (Low side transistor)
           break;
        }  
 //     }
