@@ -190,11 +190,11 @@ void loop(){
        {
         case 3:
           //PORTD = B011xxx00;  // Desired Output for pins 0-7 xxx refers to the Hall inputs, which should not be changed
-//          PORTD  &= B00011111;
-//          PORTD  |= B01100000;  //
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+          PORTD  &= B00011111;
+          PORTD  |= B01100000;  //
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,mSpeed); // PWM on Phase A (High side transistor)
           analogWrite(INHB,0);  // Phase B off (duty = 0)
@@ -202,12 +202,12 @@ void loop(){
           break;
         case 1:
           //PORTD = B001xxx00;  // Desired Output for pins 0-7
-//          PORTD  &= B00011111;  // 
-//          PORTD  |= B00100000;  // 
+          PORTD  &= B00011111;  // 
+          PORTD  |= B00100000;  // 
 
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,mSpeed); // PWM on Phase A (High side transistor)
           analogWrite(INHB,255);  // Phase B off (duty = 0)
@@ -215,12 +215,12 @@ void loop(){
           break;
         case 5:
           //PORTD = B101xxx00;  // Desired Output for pins 0-7
-//          PORTD  &= B00011111;  //
-//          PORTD  |= B10100000;
+          PORTD  &= B00011111;  //
+          PORTD  |= B10100000;
 
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,0); // PWM on Phase A (High side transistor)
           analogWrite(INHB,255);  // Phase B off (duty = 0)
@@ -228,12 +228,12 @@ void loop(){
           break;
         case 4:  
           //PORTD = B100xxx00;  // Desired Output for pins 0-7
-//          PORTD  &= B00011111;
-//          PORTD  |= B10000000;  // 
+          PORTD  &= B00011111;
+          PORTD  |= B10000000;  // 
 
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,255); // PWM on Phase A (High side transistor)
           analogWrite(INHB,0);  // Phase B off (duty = 0)
@@ -241,12 +241,12 @@ void loop(){
           break;
         case 6:
         //PORTD = B110xxx00;  // Desired Output for pins 0-7
-//          PORTD  &= B00011111;
-//          PORTD = B11000000;  // 
+          PORTD  &= B00011111;
+          PORTD = B11000000;  // 
 
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,255); // PWM on Phase A (High side transistor)
           analogWrite(INHB,mSpeed);  // Phase B off (duty = 0)
@@ -254,12 +254,12 @@ void loop(){
           break;
         case 2:
           //PORTD = B010xxx00;  // Desired Output for pins 0-7
-//          PORTD  &= B00011111;
-//          PORTD  |= B01000000;  // 
+          PORTD  &= B00011111;
+          PORTD  |= B01000000;  // 
 
-          digitalWrite(INLA, );
-          digitalWrite(INLB, );
-          digitalWrite(INLC, );
+//          digitalWrite(INLA, );
+//          digitalWrite(INLB, );
+//          digitalWrite(INLC, );
           
           analogWrite(INHA,0); // PWM on Phase A (High side transistor)
           analogWrite(INHB,mSpeed);  // Phase B off (duty = 0)

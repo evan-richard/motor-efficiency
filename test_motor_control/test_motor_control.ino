@@ -124,7 +124,7 @@ void loop() {
   if (!fault) {
     Serial.println("FAULT***");
     digitalWrite(ENABLE, LOW);
-    delay(50);
+    delay(30);
     return;
   }
 
@@ -133,7 +133,7 @@ void loop() {
   pwmOutput = 100;
   
   // MARK: Write RPM/torque to motor
-  writePwm();
+//  writePwm();
   
   // MARK: measure current and voltage(*****STILL NEED****)
   curr1 = analogRead(SOA);  // read the current input pins
