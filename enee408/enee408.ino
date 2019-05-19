@@ -13,12 +13,12 @@
 #define SERVO2 10
 
 #define SERVO1_MAX 179
-#define SERVO1_MIN 80
+#define SERVO1_MIN 10
 
 #define SERVO2_MAX 0
 #define SERVO2_MIN 180
 
-#define WAIT 30
+#define WAIT 150
 
 #define SCREEN_DELAY_TIME 500 //in millis second
 
@@ -29,6 +29,11 @@ boolean set_gyro_angles;
 int gear=3;
 long count=0, tcount5=0, tcount4=0, tcount3=0, tcount2=0, tcount1=0;
 int Isfirst=1, dif;
+
+// Variables to track servo state
+long releaseMillis = 0, pullMillis = 0;
+int repeat = 0, state = 0, pulled = 0;
+
 Servo myservo1, myservo2;  // create servo object to control a servo
 
 LiquidCrystal_PCF8574 lcd(0x27); // set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -40,8 +45,7 @@ float angle_roll_acc, angle_pitch_acc;
 float angle_pitch, angle_roll;
 int angle_pitch_buffer, angle_roll_buffer;
 float angle_pitch_output, angle_roll_output;
-//float correction_factor = 1.6;
-float correction_factor = 0;
+float correction_factor = -9;
 
 long loop_timer;
 int temp;
@@ -70,6 +74,8 @@ void setup() {
   Serial.begin(115200);
   loop_timer = micros();                                               //Reset the loop timer
   father = millis();
+  releaseMillis = millis();
+  pullMillis = millis();
   lcd.begin(16,2);
 }
 
@@ -111,6 +117,8 @@ void loop(){
   angle_pitch_output = angle_pitch_output * 0.9 + angle_pitch * 0.1;   //Take 90% of the output pitch value and add 10% of the raw pitch value
   angle_roll_output = angle_roll_output * 0.9 + angle_roll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
 
+  angle_roll_output = angle_roll_output-correction_factor;
+  angle_roll_output = angle_roll_output;
   angle_pitch_output = angle_pitch_output-correction_factor;
   
  /*lcd.setCursor(0, 0);
@@ -118,20 +126,53 @@ void loop(){
  lcd.setCursor(0, 1);
  lcd.print("  gear= "); lcd.print(gear);*/
 
- if(millis - father >= SCREEN_DELAY_TIME){   
+ if(millis() - father >= SCREEN_DELAY_TIME){   
    lcd.setBacklight(255);
    lcd.setCursor(0,0);
-   lcd.print("Angle: "); lcd.print(angle_pitch_output);
+   lcd.print("Angle: "); lcd.print(-1*angle_roll_output);
    lcd.setCursor(0,1);
    lcd.print("Gear: "); lcd.print(gear);
    setup_mpu_6050_registers();
-   Serial.print("  Angle  = "); Serial.print(angle_pitch_output);
+   Serial.print("  Angle  = "); Serial.print(-1*angle_roll_output);
    Serial.print("  gear= "); Serial.println(gear);
    father = millis();
- }  
-   if (angle_pitch_output>0.4 && gear != 6)
-   {
+ }
 
+
+ if (repeat) {                                      // in the middle of changing gears
+  switch(state) {
+    case 1:
+      if (pulled && (millis() - pullMillis >= 450)) {
+        gearupRelease();
+        releaseMillis = millis();
+        pulled = 0;
+        repeat--;
+      } else {
+        if (!pulled && millis() - releaseMillis >= 500) {
+          gearupPull();
+          pullMillis = millis();
+          pulled = 1;
+        }
+      }
+      break;
+    case 2:
+      if (pulled && (millis() - pullMillis >= 350)) {
+        geardownRelease();
+        releaseMillis = millis();
+        pulled = 0;
+        repeat--;
+      } else {
+        if (!pulled && millis() - releaseMillis >= 500) {
+          geardownPull();
+          pullMillis = millis();
+          pulled = 1;
+        }
+      }
+      break;
+    }
+ } else {                                           // done changing gears, get new state
+   if (angle_roll_output<-10 && gear != 10)
+   {
     if (Isfirst==0){
       count=tcount1;
       count=count+1;
@@ -140,23 +181,21 @@ void loop(){
         
      dif=1-gear;
      if (dif==-1){
-     gearup();
-     gearup();
-     gearup();
-     gearup();
+      state = 1;    // gearup
+      repeat = 4;   // do it 4 times
      }
      else if (dif ==-2) {
-     gearup();
-     gearup();
-     gearup();
+      state = 1;    // gearup
+      repeat = 3;   // do it 3 times
      }
      else if (dif== -3){
-     gearup();
-     gearup();
+      state = 1;    // gearup
+      repeat = 2;   // do it 2 times
       }
      else if (dif == -4)
       { 
-     gearup();
+        state = 1;    // gearup
+        repeat = 1;   // do it 1 time
         }
      count=0;
      Isfirst=1;
@@ -170,7 +209,7 @@ void loop(){
       }
     }
       
-   if (angle_pitch_output<=0.4 && angle_pitch_output>0.20 && gear != 5)
+   if (angle_roll_output<=-6 && angle_roll_output>-10 && gear != 5)
    {
 
     if (Isfirst==0){
@@ -181,20 +220,21 @@ void loop(){
         
      dif=2-gear;
      if (dif==-4){
-     geardown();
+      state = 2;    // geardown
+      repeat = 1;   // do it 1 time
      }
      else if (dif ==-2) {
-     gearup();
+      state = 1;    // gearup
+      repeat = 1;   // do it 1 time
      }
      else if (dif== -1){
-     gearup();
-     gearup();
+      state = 1;    // gearup
+      repeat = 2;   // do it 2 times
       }
      else if (dif == 0)
       { 
-    gearup();
-    gearup();
-    gearup();
+        state = 1;    // gearup
+        repeat = 3;   // do it 3 times
         }
      count=0;
      Isfirst=1;
@@ -208,7 +248,7 @@ void loop(){
       }
     }
 
-   if (angle_pitch_output <= 0.20 && angle_pitch_output > -0.05 && gear != 4)
+   if (angle_roll_output <= -2 && angle_roll_output > -6 && gear != 4)
    {
 
     if (Isfirst==0){
@@ -219,20 +259,22 @@ void loop(){
         
      dif=3-gear;
      if (dif==-3){
-     geardown();
-     geardown();
+      state = 2;    // geardown
+      repeat = 2;   // do it 2 times
      }
      else if (dif ==-2)
      {
-     geardown();
+      state = 2;    // geardown
+      repeat = 1;   // do it 1 time
       }
      else if (dif== 0){
-      gearup();
+      state = 1;    // gearup
+      repeat = 1;   // do it 1 time
       }
      else if (dif == 1)
       { 
-       gearup();
-       gearup();
+        state = 1;    // gearup
+        repeat = 2;   // do it 2 times
         }
      count=0;
      Isfirst=1;
@@ -246,7 +288,7 @@ void loop(){
       }
     }
 
-   if (angle_pitch_output <= -0.05 && angle_pitch_output > -0.20 && gear != 3)
+   if (angle_roll_output <= 2 && angle_roll_output > -2 && gear != 3)
    {
 
     if (Isfirst==0){
@@ -257,22 +299,23 @@ void loop(){
         
      dif=4-gear;
      if (dif==-2){
-       geardown();
-       geardown();
-       geardown();
+      state = 2;    // geardown
+      repeat = 3;   // do it 3 times
      }
      else if (dif ==-1)
      {
-      geardown();
-      geardown();
+      state = 2;    // geardown
+      repeat = 2;   // do it 2 times
      }
       
      else if (dif==0){
-      geardown();
+      state = 2;    // geardown
+      repeat = 1;   // do it 1 time
       }
      else if (dif == 2)
       { 
-       gearup();
+        state = 1;    // gearup
+        repeat = 1;   // do it 1 time
       }
      count=0;
      Isfirst=1;
@@ -286,7 +329,7 @@ void loop(){
       }
     }
 
-   if (angle_pitch_output  <= -0.20 && gear != 2)
+   if (angle_roll_output  >= 2 && gear != 2)
    {
 
     if (Isfirst==0){
@@ -297,25 +340,21 @@ void loop(){
         
      dif=5-gear;
      if (dif==-1){
-      geardown();
-      geardown();
-      geardown();
-      geardown();
+      state = 2;    // geardown
+      repeat = 4;   // do it 4 times
      }
      else if (dif ==0){
-      geardown();
-      geardown();
-      geardown();
+      state = 2;    // geardown
+      repeat = 3;   // do it 3 times
       }
-    
-      
      else if (dif== 1){
-      geardown();
-      geardown();
+      state = 2;    // geardown
+      repeat = 2;   // do it 2 times
       }
      else if (dif == 2)
       { 
-       geardown();
+        state = 2;    // geardown
+        repeat = 1;   // do it 1 time
         }
      count=0;
      Isfirst=1;
@@ -328,17 +367,18 @@ void loop(){
         Isfirst=0;
       }
     }
+ }
     
   count=0;
-  if (!(angle_pitch_output>0.4) && tcount1 != 0)
+  if (!(angle_roll_output<-10) && tcount1 != 0)
   tcount1=0;
-  if (!(angle_pitch_output<=0.4 && angle_pitch_output>0.20) && tcount2 !=0)
+  if (!(angle_roll_output<=-6 && angle_roll_output>-10) && tcount2 !=0)
   tcount2=0;
-  if (!(angle_pitch_output <= 0.20 && angle_pitch_output > -0.05) && tcount3 != 0)
+  if (!(angle_roll_output <= -2 && angle_roll_output > -6) && tcount3 != 0)
   tcount3=0;
-  if (!(angle_pitch_output <= -0.05 && angle_pitch_output > -0.20 ) && tcount4 != 0)
+  if (!(angle_roll_output <= 2 && angle_roll_output > -2 ) && tcount4 != 0)
   tcount4=0;
-  if (!(angle_pitch_output <= -0.20) && tcount5 != 0)
+  if (!(angle_roll_output >= 2) && tcount5 != 0)
   tcount5=0;
  while(micros() - loop_timer < 4000);                                 //Wait until the loop_timer reaches 4000us (250Hz) before starting the next loop
 
@@ -383,17 +423,20 @@ void read_mpu_6050_data(){                                             //Subrout
   gyro_z = Wire.read()<<8|Wire.read();                                 
 }
 
-void gearup(){
+void gearupPull(){
   myservo1.write(SERVO1_MAX);
-  delay(500);
+  }
+
+void gearupRelease(){
   myservo1.write(SERVO1_MIN);
-  delay(500);
   gear=gear+1;
   }
-void geardown(){
+  
+void geardownPull(){
   myservo2.write(SERVO2_MAX);
-  delay(500);
+  }
+
+  void geardownRelease(){
   myservo2.write(SERVO2_MIN);
-  delay(500);
   gear=gear-1;
   }
